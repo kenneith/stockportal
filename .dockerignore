@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite
+.venv/
+env/
+venv/
+dist/
+build/
+
+# OS/IDE
+.DS_Store
+.vscode/
+
+# Data cache（保留 stockportal/data 夾本身，但避免把本地垃圾帶上去）
+*.log

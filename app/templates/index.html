@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>盈利知-AI股市分析平台</title>
+  <link rel="stylesheet" href="/static/styles.css"/>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230d1b2a'/%3E%3Ctext x='50%25' y='52%25' text-anchor='middle' font-size='34' fill='%23ffffff' font-family='Segoe UI,Roboto,Helvetica,Arial,sans-serif'%3E盈%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+<div class="container">
+  <div class="topbar">
+    <div class="logo"><img src="/static/logo.svg" alt="盈利知" class="brand-logo"/><span class="brand-name">盈利知-AI股市分析平台</span></div>
+    <div><span id="userInfo" class="badge">未登入</span></div>
+  </div>
+
+  <div class="page--login"><div id="loginCard" class="card login-card"><h2 style="margin-top:0">歡迎使用 盈利知-AI股市分析平台</h2><div class="login-sub">請輸入您的序號以登入。</div>
+    <div class="grid-2">
+      <div>
+<input id="serialInput" placeholder="例如：LV1-XXXX-1234"/>
+      </div>
+      <div style="align-self:end;">
+        <button class="btn" onclick="login()">登入</button>
+      </div>
+    </div>
+    <div style="margin-top:8px;color:#96a0aa">
+  </div><div class="disclaimer">本平台所提供之資料僅供參考，不構成任何投資建議或保證。投資必有風險，請審慎評估，自行負責。</div>
+</div>
+  </div>
+
+  <div id="appCard" class="card" style="display:none;">
+    <div class="tabs" id="catTabs"></div>
+    <div class="row">
+      <div>
+        <div class="list" id="stockList"></div>
+      </div>
+      <div>
+        <div id="stock-header"><h2 id="stock-title"></h2><div id="stock-tags" style="display:flex;gap:.375rem;flex-wrap:wrap;"></div><div id="stock-latest" style="font-weight:600;"></div></div><div id="chart" class="card" style="height:420px;"></div>
+        <div class="kpis">
+          <div>
+            <h3>基本面</h3>
+            <table id="fundTable">
+              <thead><tr><th>指標</th><th>數值</th><th>判斷</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div>
+            <h3>技術面</h3>
+            <table id="techTable">
+              <thead><tr><th>指標</th><th>數值</th><th>判斷</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==== App State ====
+let categories = [];
+let currentCat = '';
+let currentTicker = '';
+
+// ==== Helpers ====
+function setHeaderFrom(meta, lastClose, lastDate, summaryText){
+  try{
+    var t = document.getElementById('stock-title');
+    var tags = document.getElementById('stock-tags');
+    var latest = document.getElementById('stock-latest');
+    if(!t || !tags || !latest) return;
+
+    var code = (meta && meta.ticker) ? meta.ticker : '';
+    var name = (meta && meta.name) ? meta.name : '';
+    t.textContent = (code && name) ? (code + ' ' + name) : (code || name || '');
+
+    tags.innerHTML = '';
+    var mk = meta && meta.market ? meta.market : '';
+    var ind = meta && meta.industry ? meta.industry : '';
+    if(mk){
+            var e1 = document.createElement('span');
+      e1.className = 'tag tag-market';
+      if (/上市/.test(mk)) { e1.classList.add('twse'); }
+     else if (/上櫃/.test(mk)) { e1.classList.add('otc'); }
+     e1.textContent = mk;
+     tags.appendChild(e1);
+    }
+    if(ind){
+      var e2 = document.createElement('span'); e2.className='tag tag-industry'; e2.textContent = ind; tags.appendChild(e2);
+    }
+
+    var lp = (lastClose!=null) ? lastClose : (meta && meta.latest_price != null ? meta.latest_price : null);
+    var ld = lastDate || (meta && meta.latest_date ? meta.latest_date : '');
+    var sum = summaryText || (meta && meta.summary ? meta.summary : '');
+    var cls = (sum.indexOf('多')!==-1) ? 'tag-positive' : ((sum.indexOf('空')!==-1)?'tag-negative':'tag-neutral');
+    latest.innerHTML = (lp!=null && ld)
+      ? ('最新價：<b>' + lp + '</b>（' + ld + '） | 綜合判斷：<span class="tag ' + cls + '">' + (sum||'') + '</span>')
+      : '';
+  }catch(e){ console.warn(e); }
+}
+
+// ==== Login ====
+async function login(){
+  const codeInput = document.getElementById('serialInput'); // 登入序號輸入框
+  const serial = (codeInput?.value || '').trim();
+
+  try{
+    // 呼叫後端登入，取得等級
+    const r = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ serial })
+    });
+    if(!r.ok){
+      alert('登入失敗，請確認序號。');
+      return;
+    }
+    const u = await r.json(); // 例如 { code: 'LV2-XXXX-1234', level: 2 }
+
+    // 顯示「已登入 Lv.X」
+    const userInfo = document.getElementById('userInfo');
+    if (userInfo) userInfo.textContent = `已登入  Lv.${u.level}`;
+
+    // 關掉登入畫面、打開主畫面
+    const lc = document.getElementById('loginCard'); if (lc) lc.style.display = 'none';
+    const app = document.getElementById('appCard');  if (app) app.style.display = 'block';
+    const lw = document.querySelector('.page--login'); if (lw) lw.style.display = 'none';
+
+    // 若之後前台其他功能想用等級，可暫存起來
+    window.__userLevel = u.level;
+
+    // 載入分類/資料
+    await loadCategories();
+
+  }catch(err){
+    console.error(err);
+    alert('登入過程發生錯誤。');
+  }
+}
+
+// ==== Load categories & tabs ====
+async function loadCategories(){
+  const r = await fetch('/api/categories');
+  const data = await r.json();
+  categories = data.categories || [];
+  const tabs = document.getElementById('catTabs');
+  if(!tabs) return;
+  tabs.innerHTML = '';
+  categories.forEach(function(c, idx){
+    var el = document.createElement('div');
+    el.className = 'tab' + (idx===0 ? ' active' : '');
+    el.textContent = c.name + ' (' + (c.stocks?c.stocks.length:0) + ')';
+    el.onclick = function(){ selectCategory(c.name, el); };
+    tabs.appendChild(el);
+  });
+  if(categories.length>0){
+    selectCategory(categories[0].name, tabs.children[0]);
+  }
+}
+
+// ==== Left list ====
+function renderStockList(stocks){
+  const list = document.getElementById('stockList');
+  if(!list) return;
+  list.innerHTML = '';
+  (stocks||[]).forEach(function(s){
+    var liMarket   = s.market || s.market_type || s['市場別'] || s.listing || '';
+    var liIndustry = s.industry || s['產業名稱'] || s.industry_name || s.sector || '';
+    var div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerHTML = ''
+      + '<div class="li-left"><b>' + s.ticker + '</b> ' + s.name + '</div>'
+      + '<div class="li-tags">'
+      + '</div>';
+    div.onclick = function(){ selectTicker(s.ticker, s.name); };
+    list.appendChild(div);
+  });
+}
+
+// ==== Category switch ====
+function selectCategory(name, el){
+  var tabs = document.getElementById('catTabs');
+  if(tabs){
+    for(var i=0;i<tabs.children.length;i++){ tabs.children[i].classList.remove('active'); }
+    if(el){ el.classList.add('active'); }
+  }
+  currentCat = name;
+  var cat = null;
+  for(var i=0;i<categories.length;i++){ if(categories[i].name===name){ cat = categories[i]; break; } }
+  if(!cat){ cat = {stocks:[]}; }
+  renderStockList(cat.stocks);
+  if(cat.stocks && cat.stocks.length>0){
+    selectTicker(cat.stocks[0].ticker, cat.stocks[0].name);
+  }
+}
+
+// ==== Detail ====
+async function selectTicker(ticker, name){
+  var cat = null;
+  for(var i=0;i<categories.length;i++){ if(categories[i].name===currentCat){ cat = categories[i]; break; } }
+  var meta0 = null;
+  if(cat && cat.stocks){ for(var j=0;j<cat.stocks.length;j++){ if(cat.stocks[j].ticker===ticker){ meta0 = cat.stocks[j]; break; } } }
+  var meta = {
+    ticker: ticker,
+    name: name,
+    market: (meta0 && (meta0.market || meta0.market_type || meta0['市場別'] || meta0.listing)) || '',
+    industry: (meta0 && (meta0.industry || meta0['產業名稱'] || meta0.industry_name || meta0.sector)) || ''
+  };
+
+  currentTicker = ticker;
+
+  // Chart
+  const r = await fetch('/api/series/' + ticker + '?days=60');
+  const data = await r.json();
+  const dates = data.map(function(d){return d.date;});
+  const o = data.map(function(d){return d.open;}),
+        h = data.map(function(d){return d.max;}),
+        l = data.map(function(d){return d.min;}),
+        c = data.map(function(d){return d.close;});
+  const v = data.map(function(d){return d.volume_lots;});
+
+  const k = { x: dates, open: o, high: h, low: l, close: c, type: 'candlestick', name: 'K' };
+  const line = { x: dates, y: c, type: 'scatter', name: '收盤價' };
+  const vol = { x: dates, y: v, type: 'bar', name: '成交量(張)', yaxis: 'y2', opacity: 0.5 };
+
+  const layout = {
+    font: { color: '#e6eef7' },
+    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+    margin: { l: 40, r: 40, t: 10, b: 20 },
+    xaxis: { rangeslider: { visible: false } },
+    yaxis: { title: { text: '價格', standoff: 10 }, automargin: true },
+    yaxis2: { overlaying: 'y', side: 'right', title: { text: '張', standoff: 10 }, automargin: true, showgrid: false }
+  };
+  var chartDiv = document.getElementById('chart');
+  Plotly.purge(chartDiv);
+  Plotly.newPlot(chartDiv, [k, line, vol], layout, { displayModeBar: false });
+
+  // Indicators & header info
+  const r2 = await fetch('/api/indicators/' + ticker);
+  const info = await r2.json();
+  var summary = (info.summary || (info.meta && info.meta.summary)) || '';
+
+  // meta fallback from info.meta
+  if(info && info.meta){
+    if(!meta.market && info.meta.market) meta.market = info.meta.market;
+    if(!meta.industry && info.meta.industry) meta.industry = info.meta.industry;
+  }
+
+  // latest price/date
+  var lp = null, ld = '';
+  if(info && info.meta){
+    if(info.meta.latest_price != null) lp = info.meta.latest_price;
+    if(info.meta.latest_date) ld = info.meta.latest_date;
+  }
+  if(lp==null && data && data.length){ lp = data[data.length-1].close; }
+  if(!ld && data && data.length){ ld = data[data.length-1].date; }
+
+  setHeaderFrom(meta, lp, ld, summary);
+
+  renderTable('fundTable', info.fundamentals || []);
+  renderTable('techTable', info.technicals || []);
+}
+
+// ==== Table rendering ====
+function renderTable(id, rows){
+  var tb = document.querySelector('#'+id+' tbody');
+  if(!tb) return;
+  tb.innerHTML='';
+  (rows||[]).forEach(function(r){
+    var rule = r['規則'] || '';
+    var judge = (r['判斷']||'').toString();
+    var cls = /偏多/.test(judge) ? 'tag-positive' : (/偏空/.test(judge) ? 'tag-negative' : 'tag-neutral');
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+(r['指標']||'')+'</td><td>'+(r['數值']||'')+'</td>'
+                 + '<td class="tooltip" data-tooltip="'+rule.replace(/"/g,'&quot;')+'"><span class="tag '+cls+'">'+(judge||'')+'</span></td>';
+    tb.appendChild(tr);
+  });
+}
+</script></script>
+</body>
+</html>

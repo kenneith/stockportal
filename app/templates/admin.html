@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>盈利知-AI股市分析平台</title>
+  <link rel="stylesheet" href="/static/styles.css"/>
+</head>
+<body>
+<div class="container">
+  <div class="topbar">
+    <div class="logo"><img src="/static/logo.svg" alt="盈利知" class="brand-logo"/><span class="brand-name">Admin</span></div>
+    <div><span id="adminInfo" class="badge">未登入</span></div>
+  </div>
+
+  <div class="page--login"><div id="loginCard" class="card login-card"><h2 style="margin-top:0">歡迎使用 盈利知-AI股市分析平台</h2><div class="login-sub">請輸入您的序號以登入。</div>
+    <div class="grid-2">
+      <div>
+        <label>管理者序號</label>
+        <input id="serialInput" placeholder="ADMIN-XXXX-0000"/>
+      </div>
+      <div style="align-self:end;">
+        <button class="btn" onclick="login()">登入</button>
+      </div>
+    </div>
+  </div>
+</div>
+  </div>
+
+  <div id="appCard" class="card" style="display:none;">
+    <h3>序號管理</h3>
+    <div class="grid-2">
+      <input id="newSerial" placeholder="例如：LV2-ABCD-1234"/>
+      <select id="newLevel">
+        <option value="1">Lv.1</option>
+        <option value="2">Lv.2</option>
+        <option value="3">Lv.3</option>
+        <option value="4">Lv.4</option>
+      </select>
+    </div>
+    <div style="margin-top:8px;">
+      <button class="btn" onclick="addSerial()">新增序號</button>
+      <button class="btn btn-outline" onclick="loadSerials()">刷新</button>
+    </div>
+    <table style="margin-top:10px" id="serialTable">
+      <thead><tr><th>序號</th><th>等級</th><th>角色</th><th>操作</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <h3 style="margin-top:24px;">FinMind 設定</h3>
+    <div class="grid-2">
+      <input id="finmindToken" placeholder="YOUR TOKEN"/>
+      <button class="btn" onclick="saveFinmind()">儲存</button>
+    </div>
+
+    <h3 style="margin-top:24px;">XLSX 指標檔</h3>
+    <div>
+      <a class="btn btn-outline" href="/api/admin/xlsx/download">下載目前檔案</a>
+    </div>
+    <div style="margin-top:8px;">
+      <form id="uploadForm">
+        <input type="file" name="file"/>
+        <button class="btn" type="submit">上傳覆蓋</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+async function login(){
+  const code = document.getElementById('serialInput').value.trim();
+  const r = await fetch('/api/admin/auth/login',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({serial: code})
+  });
+  if(!r.ok){ alert('登入失敗'); return; }
+  const u = await r.json();
+  document.getElementById('adminInfo').innerText = `管理者`;
+  document.getElementById('loginCard').style.display='none';
+    // 這一行是關鍵：把整個 page--login 外層也關掉
+  const loginWrap = document.querySelector('.page--login');
+  if (loginWrap) loginWrap.style.display = 'none';
+  document.getElementById('appCard').style.display='block';
+  await loadSerials();
+  await loadFinmind();
+}
+
+async function loadSerials(){
+  const r = await fetch('/api/admin/serials');
+  const data = await r.json();
+  const tb = document.querySelector('#serialTable tbody');
+  tb.innerHTML='';
+  data.items.forEach(s=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${s.code}</td><td>${s.level}</td><td>${s.role}</td>
+      <td><button class="btn btn-outline" onclick="delSerial(${s.id})">刪除</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+async function addSerial(){
+  const code = document.getElementById('newSerial').value.trim();
+  const level = parseInt(document.getElementById('newLevel').value);
+  const r = await fetch('/api/admin/serials',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({code, level})
+  });
+  if(!r.ok){ alert('新增失敗'); return; }
+  await loadSerials();
+}
+
+async function delSerial(id){
+  const r = await fetch('/api/admin/serials/'+id,{method:'DELETE'});
+  if(!r.ok){ alert('刪除失敗'); return; }
+  await loadSerials();
+}
+
+async function loadFinmind(){
+  const r = await fetch('/api/admin/finmind');
+  const data = await r.json();
+  document.getElementById('finmindToken').value = data.token || '';
+}
+
+async function saveFinmind(){
+  const token = document.getElementById('finmindToken').value.trim();
+  const r = await fetch('/api/admin/finmind',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({token})});
+  if(!r.ok){ alert('儲存失敗'); return; }
+  alert('已儲存');
+}
+
+document.getElementById('uploadForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const r = await fetch('/api/admin/xlsx/upload',{method:'POST', body:fd});
+  if(!r.ok){ alert('上傳失敗'); return; }
+  alert('上傳完成');
+});
+</script>
+</body>
+</html>

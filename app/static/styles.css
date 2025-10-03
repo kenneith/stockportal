@@ -1,0 +1,249 @@
+:root { --bg:#0b0f14; --card:#141a22; --muted:#96a0aa; --fg:#e6eef7; --accent:#3ea6ff; --ok:#37d67a; --warn:#ffd166; --bad:#ff6b6b; }
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+.card{background:var(--card);border:1px solid #1e2630;border-radius:16px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tab{padding:8px 12px;border-radius:999px;background:#0f141b;border:1px solid #263041;cursor:pointer}
+.tab.active{background:var(--accent);color:#001428}
+.list{max-height:360px;overflow:auto;border:1px solid #263041;border-radius:12px}
+.list-item{padding:10px 12px;border-bottom:1px solid #1f2835;cursor:pointer}
+.list-item:hover{background:#0f141b}
+.badge{padding:2px 8px;border-radius:999px;border:1px solid #2b3647;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+table{width:100%;border-collapse:collapse}
+td,th{padding:8px 10px;border-bottom:1px solid #223047;text-align:left}
+th{font-weight:600;color:var(--muted)}
+.tooltip{border-bottom:1px dotted var(--muted);cursor:help}
+.btn{padding:8px 12px;border-radius:10px;background:var(--accent);color:#001428;border:none;cursor:pointer}
+.btn-outline{background:transparent;border:1px solid #2a3a51;color:var(--fg)}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.logo{font-weight:700;letter-spacing:.5px}
+input,select{background:#0f141b;border:1px solid #2a3a51;border-radius:10px;color:#e6eef7;padding:10px 12px;width:100%}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+
+/* === ChatGPT patches (2025-09-30) === */
+/* Center all main page content within viewport */
+.page-container, .content, .main, .wrapper, .container {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  max-width: 1280px;
+}
+
+/* Fix left stock list narrower and stable */
+.sidebar, .stock-list, #stock-list {
+  width: 240px !important;
+  min-width: 240px !important;
+  max-width: 240px !important;
+  flex: 0 0 240px !important;
+}
+
+/* Ensure chart area has fixed flex and doesn't expand on re-render */
+.chart-area, #chart-area, .charts, #charts {
+  min-width: 0; /* prevent overflow growth */
+  flex: 1 1 auto;
+}
+
+/* Improve chart text contrast */
+canvas, .chartjs-render-monitor, .chart-container {
+  color: #e6eef7 !important;
+}
+.chart-title, .chart-subtitle, .axis text, .legend text, .chart-label, .tick text {
+  fill: #e6eef7 !important;
+  color: #e6eef7 !important;
+}
+
+/* Center login/admin panels */
+.login-container, .admin-container, .auth-card, .panel, .card {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Avoid full-width stretching */
+body, html {
+  overflow-x: hidden;
+}
+
+#appCard .row{grid-template-columns:240px 1fr}
+
+#stockList{width:240px;min-width:240px;max-width:240px}
+
+
+#chart {
+  width: 90% !important;
+  max-width: 90% !important;
+  overflow-x: hidden;
+}
+#chart > div {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+#chart {
+  flex: 1 1 auto;
+  min-height: 300px;
+  max-height: 70vh;   /* 例如最多佔 70% 視窗高度 */
+  overflow: visible;  /* 允許軸線顯示 */
+}
+
+/* === 盈利知-AI股市分析平台: Tag + RWD + Branding === */
+.brand-logo{width:24px;height:24px;vertical-align:middle;margin-right:8px}
+.brand-name{vertical-align:middle;font-weight:700}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+
+#stock-title{display:flex;gap:8px;align-items:center;white-space:nowrap}
+#stock-latest{margin-left:auto;font-weight:600;white-space:nowrap}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;border:1px solid #2b3647;font-size:.8rem;line-height:1;white-space:nowrap}
+.tag-positive{background-color:#d32f2f;color:#fff;border-color:#b71c1c} /* 偏多=紅底 */
+.tag-negative{background-color:#2e7d32;color:#fff;border-color:#1b5e20} /* 偏空=綠底 */
+.tag-neutral{background-color:#9e9e9e;color:#000;border-color:#757575}
+.tag-market{opacity:.95}
+.tag-industry{opacity:.9}
+
+/* 表格欄寬微調 */
+#fundTable th:nth-child(1), #fundTable td:nth-child(1){width:18%}
+#fundTable th:nth-child(2), #fundTable td:nth-child(2){width:32%}
+#fundTable th:nth-child(3), #fundTable td:nth-child(3){width:50%}
+
+#techTable th:nth-child(1), #techTable td:nth-child(1){width:20%}
+#techTable th:nth-child(2), #techTable td:nth-child(2){width:25%}
+#techTable th:nth-child(3), #techTable td:nth-child(3){width:55%}
+
+/* RWD */
+@media (max-width: 992px){
+  .row{grid-template-columns:1fr}
+  .list{max-height:260px}
+}
+@media (max-width: 640px){
+  #stock-title, #stock-latest{white-space:normal}
+  .tag{font-size:.75rem;padding:2px 6px}
+  table td, table th{padding:6px 8px}
+  #fundTable th:nth-child(1), #fundTable td:nth-child(1){width:30%}
+  #fundTable th:nth-child(2), #fundTable td:nth-child(2){width:30%}
+  #fundTable th:nth-child(3), #fundTable td:nth-child(3){width:40%}
+  #techTable th:nth-child(1), #techTable td:nth-child(1){width:28%}
+  #techTable th:nth-child(2), #techTable td:nth-child(2){width:22%}
+  #techTable th:nth-child(3), #techTable td:nth-child(3){width:50%}
+}
+
+/* 深色對比強化 */
+body{color:#e6eef7}
+table th{color:#e6eef7}
+table td{color:#cfe2ff}
+.card{border-color:#273244}
+.badge{border-color:#3a475a;color:#c0cad6}
+.list-item{border-bottom-color:#273244}
+
+
+
+/* === Tooltip 覆寫（移除虛線底線，改用 hover 浮窗） === */
+.tooltip{text-decoration:none;border-bottom:none;position:relative}
+.tooltip[data-tip]:hover::after{
+  content: attr(data-tip);
+  position:absolute;left:0;top:100%;transform:translateY(6px);
+  background:#1f2a38;color:#e6eef7;border:1px solid #2b3647;border-radius:8px;
+  white-space:normal;max-width:280px;font-size:.78rem;line-height:1.35;padding:8px 10px;z-index:20;
+  box-shadow:0 6px 20px rgba(0,0,0,.35);
+}
+
+/* === 登入置中與文案 === */
+.page--login{min-height:100vh;display:flex;align-items:center;justify-content:center}
+.login-card{max-width:420px;width:100%}
+.login-sub{color:#9e9e9e;font-size:.9rem;margin-top:8px}
+.disclaimer{color:#9e9e9e;font-size:.75rem;margin-top:12px;line-height:1.5}
+
+
+/* === Header 居中顯示 === */
+#stock-header{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+#stock-title{display:flex;gap:8px;align-items:center}
+#stock-latest{font-weight:600} /* 移除 margin-left:auto 以免擠到右邊 */
+
+/* === 欄寬重新分配：指標加寬 1.5 倍、判斷適度縮小 === */
+#fundTable th:nth-child(1), #fundTable td:nth-child(1){width:27%}  /* 指標 */
+#fundTable th:nth-child(2), #fundTable td:nth-child(2){width:33%}  /* 數值 */
+#fundTable th:nth-child(3), #fundTable td:nth-child(3){width:40%}  /* 判斷 */
+
+#techTable th:nth-child(1), #techTable td:nth-child(1){width:30%}
+#techTable th:nth-child(2), #techTable td:nth-child(2){width:30%}
+#techTable th:nth-child(3), #techTable td:nth-child(3){width:40%}
+
+
+/* === 強化可視性：輸入框、搜尋框、卡片、圖表邊界 === */
+.card{border-width:2px}
+.search{border:2px solid #3ea6ff;background:#0f141b;color:#e6eef7}
+.search:focus{outline:none;border-color:#58b7ff;box-shadow:0 0 0 3px rgba(62,166,255,.25)}
+.list{border-width:2px}
+#chart.card{border-width:2px}
+
+/* === 登入畫面：上移並放大 === */
+.page--login{min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding-top:10vh}
+.login-card{max-width:520px;width:100%;padding:24px}
+.login-card h2{font-size:1.6rem}
+.login-card input{font-size:1.05rem;padding:12px 14px;border:2px solid #3a475a;border-radius:12px;background:#0f141b;color:#e6eef7}
+.login-card .btn{font-size:1.05rem;padding:12px 16px;border-radius:12px}
+.login-sub{font-size:1rem}
+
+/* === 資訊列置中（覆蓋任何 inline style） === */
+#stock-header{display:flex;align-items:center;justify-content:center!important;gap:12px;flex-wrap:wrap}
+#stock-title{display:flex;gap:8px;align-items:center}
+#stock-latest{font-weight:600}
+
+
+/* v5.1: left list single-line layout with tags */
+.list-item{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.list-item .li-left{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list-item .li-tags{display:flex;gap:6px;flex:0 0 auto;white-space:nowrap}
+.tag{display:inline-block;border-radius:999px;padding:4px 10px;line-height:1;border:1px solid rgba(255,255,255,.15)}
+.tag-market{background:rgba(255,255,255,.06)}
+.tag-industry{background:rgba(255,255,255,.08)}
+@media (max-width:640px){
+  .list-item .li-tags .tag{font-size:.72rem;padding:2px 6px;border-radius:10px}
+}
+
+
+/* === 市場別（依上市/上櫃） === */
+.tag-market.twse {           /* 上市 */
+  background: #fde68a;       /* 淺黃/橘 */
+  color: #7c2d12;
+  border-color: #f59e0b;
+
+}
+.tag-market.otc {            /* 上櫃 */
+  background: #fde68a;       /* 淺黃/橘 */
+  color: #7c2d12;
+  border-color: #f59e0b;
+}
+
+/* === 產業 === */
+.tag-industry {
+  background: #bee3f8;       /* 淺藍 */
+  color: #153e75;
+  border-color: #90cdf4;
+}
+
+/* ===== 專治「最新價｜綜合判斷」往左移 ===== */
+#stock-header {
+  padding-left: 0 !important;  /* 擋掉容器左內距 */
+}
+
+/* h2 的預設外距常導致視覺對齊差一點，順手壓掉 */
+#stock-header h2#stock-title {
+  margin: 0 0 4px 0 !important;
+}
+
+/* 主角：把「最新價｜綜合判斷」這行左移一點 */
+#stock-header #stock-latest {
+  display: block;              /* 確保獨立一行 */
+  margin-left: -8px !important;/* 想更左改 -10 / -12 */
+  padding-left: 0 !important;
+}
+
+#stockList{
+  width:240px;
+  min-width:240px;
+  max-width:240px;
+  height:450px;      /* 新增 */
+  max-height:450px;  /* 新增 */
+  overflow:auto;     /* 保持可滾動 */
+}
