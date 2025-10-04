@@ -300,7 +300,7 @@ function renderTable(id, rows){
     // ✅ 只針對「布林通道」把「; 」換成換行
     var val = (r['數值'] || '').toString();
     if (indicator === '布林通道' || indicator === 'BBANDS') {
-      val = val.replace(/;\s*/g, '<br>');
+      val = val.replace(/;\s*/g, ';<br>');
     }
 
     var tr = document.createElement('tr');
