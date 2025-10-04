@@ -290,19 +290,24 @@ function renderTable(id, rows){
   if(!tb) return;
   tb.innerHTML='';
   (rows||[]).forEach(function(r){
-    var rule = r['規則'] || '';
+    var rule  = r['規則'] || '';
     var judge = (r['判斷']||'').toString();
-    var cls = /偏多/.test(judge) ? 'tag-positive' : (/偏空/.test(judge) ? 'tag-negative' : 'tag-neutral');
+    var cls   = /偏多/.test(judge) ? 'tag-positive' : (/偏空/.test(judge) ? 'tag-negative' : 'tag-neutral');
 
-    // 顯示名稱替換：P_B -> P/B
-    var indicator = (r['指標'] || '').toString();
-    if (indicator === 'P_B' || indicator.includes('P_B')) {
-      indicator = indicator.replace(/P_B/g, 'P/B');
+    var indicator = (r['指標']||'').toString();
+    if (indicator === 'P_B') indicator = 'P/B';
+
+    // ✅ 只針對「布林通道」把「; 」換成換行
+    var val = (r['數值'] || '').toString();
+    if (indicator === '布林通道' || indicator === 'BBANDS') {
+      val = val.replace(/;\s*/g, '<br>');
     }
 
-    tr = document.createElement('tr');
-    tr.innerHTML = '<td>'+indicator+'</td><td>'+(r['數值']||'')+'</td>'
-                 + '<td class="tooltip" data-tooltip="'+rule.replace(/"/g,'&quot;')+'"><span class="tag '+cls+'">'+(judge||'')+'</span></td>';
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>'+indicator+'</td>'+
+      '<td class="val-multiline">'+ val +'</td>' +  // 用 innerHTML 才會吃 <br>
+      '<td class="tooltip" data-tooltip="'+rule.replace(/"/g,'&quot;')+'"><span class="tag '+cls+'">'+(judge||'')+'</span></td>';
     tb.appendChild(tr);
   });
 }

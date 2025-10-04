@@ -248,3 +248,4 @@ table td{color:#cfe2ff}
   overflow:auto;     /* 保持可滾動 */
 }
 
+.val-multiline { white-space: normal; line-height: 1.4; }

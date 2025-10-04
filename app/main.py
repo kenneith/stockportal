@@ -28,7 +28,7 @@ FUND_STD = ["ticker","指標","數值","判斷","規則"]
 TECH_STD = ["ticker","指標","數值","判斷","規則"]
 
 # === Patched helpers (2025-09-30) ===
-TECH_KEYS = ["MA","KD","MACD","RSI","PSY","BIAS","W%R","布林通道","OBV"]
+TECH_KEYS = ["MA","KD","MACD","RSI","PSY","BIAS","W%R","BBANDS","OBV"]
 FUND_KEYS = ["ROE","負債比率","利息保障倍數","流動比率","速動比率","殖利率","本益比","P_B"]
 
 def _from_stocks_sheet(df: pd.DataFrame):
