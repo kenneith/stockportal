@@ -23,8 +23,8 @@ app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR,"static")), nam
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR,"templates"))
 
 # --- XLSX helpers: normalize headers and sheets ---
-STOCKS_STD = ["category","ticker","name"]
-FUND_STD = ["ticker","指標","數值","判斷","規則"]
+STOCKS_STD = ["category","ticker","name","market","industry","latest_price","latest_date","說明"]
+FUND_STD = ["ticker","指標","數值","判斷","規則","說明"]
 TECH_STD = ["ticker","指標","數值","判斷","規則"]
 
 # === Patched helpers (2025-09-30) ===
@@ -42,6 +42,7 @@ def _from_stocks_sheet(df: pd.DataFrame):
         "industry": df.get("產業名稱"),
         "latest_price": df.get("最新股價"),
         "latest_date": df.get("最新日期"),
+        "說明": df.get("說明"),
     }).dropna(subset=["ticker"])
 
     def build_long(keys):
@@ -299,8 +300,19 @@ def api_indicators(ticker: str, s=Depends(require_user)):
     dfs = load_xlsx()
     fund = dfs["fundamentals"]
     tech = dfs["technicals"]
-    frows = fund[ fund["ticker"] == ticker ].fillna("")
-    trows = tech[ tech["ticker"] == ticker ].fillna("")
+    key = str(ticker).strip()
+    try:
+        fund2 = fund.copy()
+        fund2["ticker"] = fund2["ticker"].astype(str).str.strip()
+    except Exception:
+        fund2 = fund
+    try:
+        tech2 = tech.copy()
+        tech2["ticker"] = tech2["ticker"].astype(str).str.strip()
+    except Exception:
+        tech2 = tech
+    frows = fund2[ fund2["ticker"] == key ].fillna("")
+    trows = tech2[ tech2["ticker"] == key ].fillna("")
 
     logger.info(f"=== DEBUG: fundamentals row === {frows.iloc[0].to_dict()}")
     if not frows.empty:
@@ -338,7 +350,33 @@ def api_indicators(ticker: str, s=Depends(require_user)):
         summary_val = rfund.get("綜合判斷") or rfund.get("summary")
         logger.info(f"=== DEBUG: summary_val from fundamentals === {summary_val}")
 
-    # 再組 meta
+        # 取出「說明」欄位（若無則空字串）
+    desc = ""
+    if not frows.empty:
+        try:
+            desc = (frows.iloc[0].get("說明") or "").strip()
+        except Exception:
+            desc = ""
+
+    # 若基本面無說明，嘗試從 stocks 取
+    if not desc:
+        try:
+            dfs_all2 = load_xlsx()
+            if "stocks" in dfs_all2 and not dfs_all2["stocks"].empty:
+                s2 = dfs_all2["stocks"].copy()
+                try:
+                    s2["ticker"] = s2["ticker"].astype(str).str.strip()
+                except Exception:
+                    pass
+                row = s2[ s2["ticker"] == key ]
+                if not row.empty:
+                    val = row.iloc[0].get("說明")
+                    if val:
+                        desc = str(val).strip()
+        except Exception:
+            pass
+
+# 再組 meta
     meta = {}
     dfs_all = load_xlsx()
     if "stocks" in dfs_all and not dfs_all["stocks"].empty:
@@ -361,7 +399,8 @@ def api_indicators(ticker: str, s=Depends(require_user)):
         "fundamentals": frows.to_dict(orient="records"),
         "technicals": trows.to_dict(orient="records"),
         "meta": meta,
-        "summary": meta.get("summary") or summary_txt
+        "summary": meta.get("summary") or summary_txt,
+        "說明": desc
     }
 
 

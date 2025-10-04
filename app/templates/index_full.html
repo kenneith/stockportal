@@ -37,7 +37,9 @@
         <div class="list" id="stockList"></div>
       </div>
       <div>
-        <div id="chart" class="card" style="height:420px;"></div>
+        <!-- 說明：預設隱藏；有內容再顯示 -->
+<div id="descBox" class="desc-card" style="display:none;"><div class="desc-head">說明</div><p id="descText" class="desc-text"></p></div>
+<div id="chart" class="card chart-card" style="height:420px;"></div>
         <div class="kpis">
           <div>
             <h3>基本面</h3>
@@ -137,11 +139,23 @@ async function selectTicker(ticker, name){
   };
 const chartDiv = document.getElementById('chart');
 Plotly.purge(chartDiv);  // 清除舊圖
-Plotly.newPlot(chartDiv, [k,line,vol], layout, {displayModeBar:false});
+Plotly.newPlot(chartDiv, [k, line, vol], layout, { displayModeBar: false, responsive: true });
 
   // Indicators
   const r2 = await fetch(`/api/indicators/${ticker}`);
   const info = await r2.json();
+  // 說明顯示在圖表上方
+  const descBox = document.getElementById('descBox');
+  const descText = document.getElementById('descText');
+  const desc = (info && info.說明) ? String(info.說明).trim() : '';
+  if (desc) {
+    descBox.style.display = '';
+    descText.textContent = desc;
+  } else {
+    descBox.style.display = 'none';
+    if (descText) descText.textContent = '';
+  }
+
   renderTable('fundTable', info.fundamentals);
   renderTable('techTable', info.technicals);
 }

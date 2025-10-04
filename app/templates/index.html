@@ -36,7 +36,9 @@
         <div class="list" id="stockList"></div>
       </div>
       <div>
-        <div id="stock-header"><h2 id="stock-title"></h2><div id="stock-tags" style="display:flex;gap:.375rem;flex-wrap:wrap;"></div><div id="stock-latest" style="font-weight:600;"></div></div><div id="chart" class="card" style="height:520px;"></div>
+        <div id="stock-header"><h2 id="stock-title"></h2><div id="stock-tags" style="display:flex;gap:.375rem;flex-wrap:wrap;"></div><div id="stock-latest" style="font-weight:600;"></div></div><!-- 說明：預設隱藏；有內容再顯示 -->
+<div id="descBox" class="desc-card narrow" style="display:none;"><p id="descText" class="desc-text"></p></div>
+<div id="chart" class="card chart-card" style="height:520px;"></div>
         <div class="kpis">
           <div>
             <h3>基本面</h3>
@@ -243,7 +245,7 @@ async function selectTicker(ticker, name){
 };
   var chartDiv = document.getElementById('chart');
   Plotly.purge(chartDiv);
-  Plotly.newPlot(chartDiv, [k, line, vol], layout, { displayModeBar: false });
+  Plotly.newPlot(chartDiv, [k, line, vol], layout, { displayModeBar: false, responsive: true });
 
   // Initialize shapes array for cross-panel vertical line
   Plotly.relayout(chartDiv, { shapes: [] });
@@ -261,6 +263,18 @@ async function selectTicker(ticker, name){
   // Indicators & header info
   const r2 = await fetch('/api/indicators/' + ticker);
   const info = await r2.json();
+  // ===== 說明：顯示在圖表上方 =====
+  const descBox = document.getElementById('descBox');
+  const descText = document.getElementById('descText');
+  const desc = (info && info.說明) ? String(info.說明).trim() : '';
+  if (desc) {
+    descBox.style.display = '';
+    descText.textContent = desc;
+  } else {
+    descBox.style.display = 'none';
+    if (descText) descText.textContent = '';
+  }
+
   var summary = (info.summary || (info.meta && info.meta.summary)) || '';
 
   // meta fallback from info.meta

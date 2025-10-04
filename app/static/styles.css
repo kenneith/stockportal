@@ -249,3 +249,52 @@ table td{color:#cfe2ff}
 }
 
 .val-multiline { white-space: normal; line-height: 1.4; }
+
+/* === Description card styling === */
+.desc-card{position:relative;background:var(--card);border:1px solid #263041;border-radius:12px;padding:12px 14px;margin:8px 0 12px;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.desc-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:12px 0 0 12px;background:var(--accent);opacity:.6}
+.desc-head{font-size:12px;color:var(--muted);margin-bottom:6px;letter-spacing:.2px}
+.desc-text{font-size:18px;line-height:1.2;color:var(--fg);white-space:pre-line}
+
+/* clamp helpers */
+.line-1{-webkit-line-clamp:1}
+.line-2{-webkit-line-clamp:2}
+.line-3{-webkit-line-clamp:3}
+[class^="line-"]{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+
+/* chart same width as desc-box, unified padding/border */
+.chart-card{background:var(--card);border:1px solid #263041;border-radius:12px;padding:12px 14px}
+
+/* 說明卡片（縮小外框高度） */
+.desc-card{
+  padding: 6px 10px;         /* 原本 12px 14px → 減少上下 padding */
+  margin: 4px 0 8px;         /* 原本 8px 0 12px → 縮小上下間距 */
+}
+.desc-card::before{ width: 3px; }  /* 左側色條變窄，視覺上也更扁 */
+
+.desc-text{
+  line-height: 1;          /* 原本 1.7~1.8 → 降低行高 */
+}
+/* 若目前加了 .line-2 想再矮一些，可只顯示 1 行 */
+.line-1{ -webkit-line-clamp: 1; }
+
+/* 與說明框一致的外框與內距 */
+.chart-card{
+  background: var(--card);
+  border: 1px solid #263041;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 8px 0 0;      /* 與說明框對齊 */
+  width: 100%;          /* 關鍵：吃滿欄位寬度 */
+  box-sizing: border-box;
+}
+
+/* 讓 Plotly 容器永遠吃滿自身容器寬度 */
+#chart { width: 100%; }
+
+/* 縮版說明卡：上限 860px，超過則置中 */
+.desc-card.narrow {
+  max-width: 860px;      /* 想要多窄改這裡；也可用 720px、680px… */
+  width: 90%;
+  margin: 8px auto 12px; /* auto 讓它置中 */
+}
