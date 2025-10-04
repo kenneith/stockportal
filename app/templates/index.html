@@ -297,16 +297,24 @@ function renderTable(id, rows){
     var indicator = (r['指標']||'').toString();
     if (indicator === 'P_B') indicator = 'P/B';
 
-    // ✅ 只針對「布林通道」把「; 」換成換行
+    // 只處理布林通道/BBANDS：移除「收盤:...」
     var val = (r['數值'] || '').toString();
+
     if (indicator === '布林通道' || indicator === 'BBANDS') {
+      // 1) 先把「收盤:xxx」整段刪掉（無論前面有沒有分號或換行）
+      val = val.replace(/(?:;|\n)?\s*收盤:[^;<\n]+/g, '');
+
+      // 2) 收尾清理：若最後留下的字串尾端剛好是分號就去掉
+      val = val.replace(/;\s*$/, '');
+
+      // 3) 若你要分號換行顯示
       val = val.replace(/;\s*/g, ';<br>');
     }
 
     var tr = document.createElement('tr');
     tr.innerHTML =
       '<td>'+indicator+'</td>'+
-      '<td class="val-multiline">'+ val +'</td>' +  // 用 innerHTML 才會吃 <br>
+      '<td class="val-multiline">'+ val +'</td>'+
       '<td class="tooltip" data-tooltip="'+rule.replace(/"/g,'&quot;')+'"><span class="tag '+cls+'">'+(judge||'')+'</span></td>';
     tb.appendChild(tr);
   });
