@@ -293,8 +293,15 @@ function renderTable(id, rows){
     var rule = r['規則'] || '';
     var judge = (r['判斷']||'').toString();
     var cls = /偏多/.test(judge) ? 'tag-positive' : (/偏空/.test(judge) ? 'tag-negative' : 'tag-neutral');
-    var tr = document.createElement('tr');
-    tr.innerHTML = '<td>'+(r['指標']||'')+'</td><td>'+(r['數值']||'')+'</td>'
+
+    // 顯示名稱替換：P_B -> P/B
+    var indicator = (r['指標'] || '').toString();
+    if (indicator === 'P_B' || indicator.includes('P_B')) {
+      indicator = indicator.replace(/P_B/g, 'P/B');
+    }
+
+    tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+indicator+'</td><td>'+(r['數值']||'')+'</td>'
                  + '<td class="tooltip" data-tooltip="'+rule.replace(/"/g,'&quot;')+'"><span class="tag '+cls+'">'+(judge||'')+'</span></td>';
     tb.appendChild(tr);
   });
