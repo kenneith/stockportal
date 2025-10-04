@@ -36,7 +36,7 @@
         <div class="list" id="stockList"></div>
       </div>
       <div>
-        <div id="stock-header"><h2 id="stock-title"></h2><div id="stock-tags" style="display:flex;gap:.375rem;flex-wrap:wrap;"></div><div id="stock-latest" style="font-weight:600;"></div></div><div id="chart" class="card" style="height:420px;"></div>
+        <div id="stock-header"><h2 id="stock-title"></h2><div id="stock-tags" style="display:flex;gap:.375rem;flex-wrap:wrap;"></div><div id="stock-latest" style="font-weight:600;"></div></div><div id="chart" class="card" style="height:520px;"></div>
         <div class="kpis">
           <div>
             <h3>基本面</h3>
@@ -221,21 +221,42 @@ async function selectTicker(ticker, name){
         c = data.map(function(d){return d.close;});
   const v = data.map(function(d){return d.volume_lots;});
 
-  const k = { x: dates, open: o, high: h, low: l, close: c, type: 'candlestick', name: 'K' };
+  const k = { x: dates, open: o, high: h, low: l, close: c, type: 'candlestick', name: 'K', increasing: { line: { color: '#ff4d4f' }, fillcolor: '#ff4d4f' }, decreasing: { line: { color: '#52c41a' }, fillcolor: '#52c41a' } };
   const line = { x: dates, y: c, type: 'scatter', name: '收盤價' };
-  const vol = { x: dates, y: v, type: 'bar', name: '成交量(張)', yaxis: 'y2', opacity: 0.5 };
+  const vol = { x: dates, y: v, type: 'bar', name: '成交量(張)', xaxis: 'x2', yaxis: 'y2', marker: { color: '#7aa2f7' }, opacity: 0.6 };
 
   const layout = {
-    font: { color: '#e6eef7' },
-    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-    margin: { l: 40, r: 40, t: 10, b: 20 },
-    xaxis: { rangeslider: { visible: false } },
-    yaxis: { title: { text: '價格', standoff: 10 }, automargin: true },
-    yaxis2: { overlaying: 'y', side: 'right', title: { text: '張', standoff: 10 }, automargin: true, showgrid: false }
-  };
+  font: { color: '#e6eef7' },
+  paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+  margin: { l: 40, r: 40, t: 10, b: 20 },
+  hovermode: 'x unified',
+  hoverdistance: 50,
+  spikedistance: -1,
+  hoverlabel: { bgcolor: 'rgba(31,41,55,0.95)', bordercolor: '#374151', font: { color: '#e6eef7', size: 12 } },
+  // 上方主圖（價格/K）
+  xaxis:  { domain: [0, 1], rangeslider: { visible: false }, showspikes: true, spikemode: 'across', spikesnap: 'cursor', spikethickness: 1, spikecolor: '#9CA3AF' },
+  yaxis:  { domain: [0.32, 1], title: { text: '價格', standoff: 10 }, automargin: true },
+  // 下方副圖（成交量）
+  xaxis2: { domain: [0, 1], matches: 'x', showticklabels: false, showspikes: true, spikemode: 'across', spikesnap: 'cursor', spikethickness: 1, spikecolor: '#9CA3AF' },
+  yaxis2: { domain: [0, 0.25], title: { text: '量', standoff: 10 }, automargin: true, showgrid: false },
+  bargap: 0.1
+};
   var chartDiv = document.getElementById('chart');
   Plotly.purge(chartDiv);
   Plotly.newPlot(chartDiv, [k, line, vol], layout, { displayModeBar: false });
+
+  // Initialize shapes array for cross-panel vertical line
+  Plotly.relayout(chartDiv, { shapes: [] });
+  chartDiv.on('plotly_hover', function (ev) {
+    const x = ev.points && ev.points.length ? ev.points[0].x : null;
+    if (x == null) return;
+    Plotly.relayout(chartDiv, {
+      shapes: [{ type: 'line', x0: x, x1: x, y0: 0, y1: 1, xref: 'x', yref: 'paper', line: { color: '#9CA3AF', width: 1, dash: 'dot' } }]
+    });
+  });
+  chartDiv.on('plotly_unhover', function () {
+    Plotly.relayout(chartDiv, { shapes: [] });
+  });
 
   // Indicators & header info
   const r2 = await fetch('/api/indicators/' + ticker);
