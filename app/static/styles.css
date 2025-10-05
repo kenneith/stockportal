@@ -298,3 +298,330 @@ table td{color:#cfe2ff}
   width: 90%;
   margin: 8px auto 12px; /* auto 讓它置中 */
 }
+
+
+/* (removed previous broad RWD block) */
+
+
+
+/* ===== Safer RWD Patch v2 (scoped & mobile-first) ===== */
+
+/* Base: keep images/tables fluid without altering desktop layout */
+img, canvas, svg, video, iframe { max-width: 100%; height: auto; display: block; }
+.table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { width: 100%; border-collapse: collapse; table-layout: auto; }
+.val-multiline { word-wrap: break-word; word-break: break-word; white-space: normal; }
+
+/* Admin/Login page safeguards */
+@media (min-width: 900px) {
+  /* Prevent title from breaking to next line near logo */
+  header h1, .site-title, .brand-title { white-space: nowrap; }
+  /* Typical login box constraints */
+  .login, .auth, .login-wrapper, .auth-wrapper, .login-box, .auth-box, #login, #auth {
+    max-width: 480px;
+    margin-left: auto; margin-right: auto;
+  }
+}
+
+/* MOBILE ONLY (<=900px): stack columns & show main content */
+@media (max-width: 900px) {
+
+  /* Remove min-width that can cause horizontal overflow on common wrappers */
+  .container, .content, .wrap, .main, .sidebar, .panel, .card, .tables, .charts, .layout, main, #main, #content, #container {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Force common two-column layouts to become single column */
+  .layout, .columns, .grid, .row, .app, .main-wrap, .page, .body, .shell {
+    display: block !important;
+  }
+  .sidebar, #sidebar, [class*="side"] {
+    width: 100% !important;
+    float: none !important;
+  }
+  .main, #main, [class*="main"], .content, #content {
+    width: 100% !important;
+    float: none !important;
+    display: block !important;
+  }
+
+  /* Ensure the area to the right of the list is visible on phones */
+  .charts, .tables, .sections, .details, .right, .right-pane, .panel-right {
+    display: block !important;
+    width: 100% !important;
+    overflow: visible !important;
+  }
+
+  /* Table -> card on small screens; needs data-label on <td> */
+  thead { display: none; }
+  table, tbody, tr, td { display: block; width: 100%; }
+  tr { margin: 0 0 12px 0; padding: 12px; border: 1px solid rgba(0,0,0,.08); border-radius: 12px; }
+  td { border: 0; padding: 6px 0; }
+  td + td { border-top: 1px dashed rgba(0,0,0,.08); }
+  td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: .78rem;
+    opacity: .7;
+    margin-bottom: 2px;
+  }
+
+  /* Toolbars/buttons: wrap on phone */
+  .toolbar, .filters { display: flex; flex-wrap: wrap; gap: 8px; }
+  .toolbar .btn, .filters .btn { min-height: 40px; }
+}
+
+/* Desktop chart/table width recovery (avoid super long stretches) */
+@media (min-width: 900px) {
+  .login form, .auth form, .login-box form, .auth-box form {
+    max-width: 480px; margin: 0 auto;
+  }
+}
+/* ===== End Safer RWD Patch v2 ===== */
+
+
+
+/* ===== RWD Hotfix v3 ===== */
+
+/* Desktop header/title: keep on one line next to logo */
+@media (min-width: 900px) {
+  header, .topbar, .navbar, .brand, .brand-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+  header h1, .site-title, .brand-title, .title {
+    white-space: nowrap;
+  }
+  header img, .logo, .brand img {
+    max-height: 24px;
+    width: auto;
+    height: auto;
+    flex: 0 0 auto;
+  }
+}
+
+/* Mobile readability: don't break every character; keep <br> visible */
+@media (max-width: 900px) {
+  .val-multiline { 
+    white-space: pre-wrap;       /* keep <br> and wrap long lines nicely */
+    word-break: keep-all;        /* don't break inside alphanumeric words */
+    overflow-wrap: anywhere;     /* but allow wrap when too long */
+  }
+  .val-multiline br { display: inline; }  /* ensure our injected <br> stays */
+}
+
+/* Force-left/right columns to stack on phones more aggressively */
+@media (max-width: 900px) {
+  .layout, .columns, .row, .grid, .app, .page, .main-wrap, .shell, main, #app, #main, #content, .content {
+    display: block !important;
+  }
+  .sidebar, #sidebar, [class*="side"], [class*="left"], [class*="nav"] {
+    width: 100% !important;
+    float: none !important;
+  }
+  .main, #main, [class*="main"], [class*="right"], .details, .panels, .sections, .charts, .tables {
+    width: 100% !important;
+    float: none !important;
+    display: block !important;
+  }
+  /* Add spacing between stacked blocks */
+  .sidebar, #sidebar, [class*="left"], [class*="nav"],
+  .main, #main, [class*="main"], [class*="right"] { margin-bottom: 16px; }
+}
+
+/* Charts and canvases should be fully visible */
+.chart-container, .k-chart, .echart, .canvas-wrap, canvas, svg { max-width: 100%; }
+canvas { height: auto; }
+/* ===== End RWD Hotfix v3 ===== */
+
+
+
+/* ===== RWD Hotfix v4 (targeted) ===== */
+
+/* Desktop header: keep title next to logo on one line */
+@media (min-width: 900px) {
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .logo { display: flex; align-items: center; gap: 8px; }
+  .brand-name { white-space: nowrap; } /* your page uses .brand-name */
+  .brand-logo { max-height: 24px; width: auto; height: auto; }
+}
+
+/* Mobile layout: force grids to single column */
+@media (max-width: 900px) {
+  .row, .kpis, .grid-2, .grid-3 { 
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+  .tabs { flex-wrap: wrap; }
+  .card { padding: 12px; border-radius: 12px; }
+}
+
+/* Mobile value readability */
+@media (max-width: 900px) {
+  .val-multiline {
+    white-space: pre-wrap;      /* respect <br> inserted by JS */
+    word-break: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* General safeguard: avoid super narrow table cells */
+td, th { min-width: 0; }
+table { table-layout: auto; }
+/* ===== End RWD Hotfix v4 ===== */
+
+
+
+/* ===== RWD Hotfix v5: Compact indicator rows on mobile ===== */
+@media (max-width: 640px) {
+  /* Apply to tables with .compact-table (we'll add via JS) */
+  .compact-table thead { display: none; }
+  .compact-table, .compact-table tbody { display: block; width: 100%; }
+  .compact-table tr {
+    display: grid;
+    grid-template-columns: 1fr auto auto; /* 指標 | 數值 | 判斷 */
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 12px;
+    background: transparent;
+  }
+  .compact-table td {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+  /* Hide the auto "data-label" captions we used for card mode */
+  .compact-table td::before { display: none !important; }
+
+  .compact-table td[data-label="數值"] {
+    text-align: right;
+    font-weight: 600;
+  }
+  .compact-table .val-multiline { white-space: nowrap; }
+  .compact-table .val-multiline br { display: none; } /* keep on one line for compact */
+  .compact-table td[data-label="判斷"] { justify-self: end; }
+  .compact-table td[data-label="判斷"] .tag { transform: scale(.95); }
+}
+/* ===== End v5 ===== */
+
+
+
+/* ===== RWD Hotfix v6: Force horizontal 3-column rows on mobile when table has data-labels ===== */
+@media (max-width: 640px) {
+
+  /* Give .compact-table precedence over generic mobile card rules */
+  .compact-table thead { display: none !important; }
+  .compact-table, .compact-table tbody { display: block !important; width: 100% !important; }
+
+  .compact-table tr {
+    display: grid !important;
+    grid-template-columns: 1fr auto auto; /* 指標 | 數值 | 判斷 */
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 12px;
+    background: transparent;
+  }
+  .compact-table td {
+    display: block !important;
+    padding: 0 !important;
+    border: 0 !important;
+    width: auto !important;
+  }
+
+  /* Hide the generic data-label caption in compact mode */
+  .compact-table td::before { display: none !important; }
+
+  /* Value on one line, right-aligned */
+  .compact-table td[data-label="數值"] {
+    text-align: right !important;
+    font-weight: 600;
+  }
+  .compact-table .val-multiline {
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .compact-table .val-multiline br { display: none !important; }
+
+  /* 判斷標籤靠右 */
+  .compact-table td[data-label="判斷"] { justify-self: end !important; }
+  .compact-table td[data-label="判斷"] .tag { transform: scale(.95); }
+}
+/* ===== End v6 ===== */
+
+
+
+/* ===== RWD Hotfix v7: Explicitly target fund/tech tables ===== */
+@media (max-width: 640px) {
+  #fundTable, #techTable { width: 100% !important; }
+  #fundTable thead, #techTable thead { display: none !important; }
+  #fundTable tr, #techTable tr {
+    display: grid !important;
+    grid-template-columns: 1fr auto auto !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    margin-bottom: 10px !important;
+    border: 1px solid rgba(0,0,0,.08) !important;
+    border-radius: 12px !important;
+  }
+  #fundTable td, #techTable td { display: block !important; padding: 0 !important; border: 0 !important; }
+  #fundTable td::before, #techTable td::before { display: none !important; }
+  #fundTable td[data-label="數值"], #techTable td[data-label="數值"] { text-align: right !important; font-weight: 600; }
+  #fundTable .val-multiline, #techTable .val-multiline { white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
+  #fundTable .val-multiline br, #techTable .val-multiline br { display: none !important; }
+  #fundTable td[data-label="判斷"], #techTable td[data-label="判斷"] { justify-self: end !important; }
+}
+/* ===== End v7 ===== */
+
+
+
+/* ===== RWD Hotfix v8: prevent text overlap in compact rows ===== */
+@media (max-width: 640px) {
+  /* grid columns: 指標 | 數值(彈性) | 判斷(固定在右) */
+  #fundTable tr, #techTable tr, .compact-table tr {
+    grid-template-columns: minmax(6rem,1fr) minmax(0,2fr) auto !important;
+  }
+  /* value column: allow wrapping, up to 2 lines with clamp */
+  #fundTable td[data-label="數值"], #techTable td[data-label="數值"], .compact-table td[data-label="數值"] {
+    min-width: 0 !important;
+  }
+  #fundTable .val-multiline, #techTable .val-multiline, .compact-table .val-multiline {
+    white-space: normal !important;        /* 允許換行 */
+    overflow-wrap: anywhere !important;    /* 長字也能斷 */
+    word-break: break-word !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 3;                 /* 最多兩行 */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  /* 讓我們插入的 <br> 在手機緊湊模式下可見 */
+  #fundTable .val-multiline br, #techTable .val-multiline br, .compact-table .val-multiline br {
+    display: inline !important;
+  }
+  /* 判斷標籤：固定單行，避免擠壓 */
+  #fundTable td[data-label="判斷"] .tag,
+  #techTable  td[data-label="判斷"] .tag,
+  .compact-table td[data-label="判斷"] .tag {
+    white-space: nowrap !important;
+  }
+  /* 指標名稱若太長也允許折行 */
+  #fundTable td[data-label="指標"], #techTable td[data-label="指標"], .compact-table td[data-label="指標"] {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+}
+/* ===== End v8 ===== */
+

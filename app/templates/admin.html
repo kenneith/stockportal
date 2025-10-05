@@ -136,5 +136,30 @@ document.getElementById('uploadForm').addEventListener('submit', async (e)=>{
   alert('上傳完成');
 });
 </script>
+
+<script>
+// === 自動將所有 <table> 外包 .table-responsive，並監聽動態新增 ===
+(function () {
+  function wrapTables(ctx=document) {
+    ctx.querySelectorAll('table').forEach(function (tbl) {
+      if (tbl.parentElement && tbl.parentElement.classList.contains('table-responsive')) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'table-responsive';
+      tbl.parentNode.insertBefore(wrap, tbl);
+      wrap.appendChild(tbl);
+    });
+  }
+  wrapTables();
+  const mo = new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => {
+    if (!(n instanceof HTMLElement)) return;
+    if (n.tagName === 'TABLE') wrapTables(document); else wrapTables(n);
+  })));
+  mo.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+
+
+<script>(function(){ document.body.classList.add('rwd-enabled'); })();</script>
+
 </body>
 </html>

@@ -42,14 +42,14 @@
         <div class="kpis">
           <div>
             <h3>基本面</h3>
-            <table id="fundTable">
+            <table id="fundTable" class="compact-table">
               <thead><tr><th>指標</th><th>數值</th><th>判斷</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
           <div>
             <h3>技術面</h3>
-            <table id="techTable">
+            <table id="techTable" class="compact-table">
               <thead><tr><th>指標</th><th>數值</th><th>判斷</th></tr></thead>
               <tbody></tbody>
             </table>
@@ -334,5 +334,117 @@ function renderTable(id, rows){
   });
 }
 </script></script>
+
+<script>
+// === RWD + 空值處理 覆蓋版 renderTable（index.html）===
+(function(){
+  window.renderTable = function(id, rows){
+    var tb = document.querySelector('#'+id+' tbody');
+    if(!tb) return;
+    tb.innerHTML='';
+    (rows||[]).forEach(function(r){
+      var rule  = r['規則'] || '';
+      var judge = (r['判斷']||'').toString();
+      var cls   = /偏多/.test(judge) ? 'tag-positive' : (/偏空/.test(judge) ? 'tag-negative' : 'tag-neutral');
+
+      var indicator = (r['指標']||'').toString();
+      if (indicator === 'P_B') indicator = 'P/B';
+
+      var rawVal = r['數值'];
+      var isInsufficient = /資料不足/i.test(judge);
+      var hasVal = !isInsufficient && rawVal != null && String(rawVal).trim() !== '' && !/資料不足/i.test(String(rawVal));
+      var val = hasVal ? String(rawVal) : '';
+
+      if (hasVal && (indicator === '布林通道' || indicator === 'BBANDS')) {
+        val = val.replace(/(?:;|\n)?\s*收盤:[^;<\n]+/g, '');
+        val = val.replace(/;\s*$/, '');
+        val = val.replace(/;\s*/g, ';<br>');
+      }
+
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td data-label="指標">'+indicator+'</td>'+
+        '<td data-label="數值" class="val-multiline">'+ val +'</td>'+
+        '<td data-label="判斷" class="tooltip" data-tooltip="'+String(rule).replace(/"/g,'&quot;')+'"><span class="tag '+cls+'">'+(judge||'')+'</span></td>';
+      tb.appendChild(tr);
+    });
+  }
+})();
+</script>
+
+
+<script>
+// === 自動將所有 <table> 外包 .table-responsive，並監聽動態新增 ===
+(function () {
+  function wrapTables(ctx=document) {
+    ctx.querySelectorAll('table').forEach(function (tbl) {
+      if (tbl.parentElement && tbl.parentElement.classList.contains('table-responsive')) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'table-responsive';
+      tbl.parentNode.insertBefore(wrap, tbl);
+      wrap.appendChild(tbl);
+    });
+  }
+  wrapTables();
+  const mo = new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => {
+    if (!(n instanceof HTMLElement)) return;
+    if (n.tagName === 'TABLE') wrapTables(document); else wrapTables(n);
+  })));
+  mo.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+
+
+<script>(function(){ document.body.classList.add('rwd-enabled'); })();</script>
+
+
+<script>
+// Apply compact mode to fundamental & technical tables if present
+(function(){
+  function applyCompact() {
+    var ids = ['fundamental-table','technical-table','fund-table','tech-table'];
+    ids.forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) el.classList.add('compact-table');
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applyCompact);
+  } else {
+    applyCompact();
+  }
+})();
+</script>
+
+
+<script>
+// v6: Any table that already uses data-labels becomes compact on phones
+(function(){
+  function markCompactTables(scope=document){
+    scope.querySelectorAll('table').forEach(function(tbl){
+      if (tbl.classList.contains('compact-table')) return;
+      if (tbl.querySelector('td[data-label]')) {
+        tbl.classList.add('compact-table');
+      }
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ markCompactTables(); });
+  } else { markCompactTables(); }
+
+  // Also watch for dynamic updates
+  const mo = new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      m.addedNodes.forEach(function(n){
+        if (n.nodeType !== 1) return;
+        if (n.tagName === 'TABLE') { markCompactTables(document); }
+        else { markCompactTables(n); }
+      });
+    });
+  });
+  mo.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+
 </body>
 </html>
