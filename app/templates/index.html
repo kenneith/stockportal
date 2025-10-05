@@ -244,8 +244,147 @@ async function selectTicker(ticker, name){
   bargap: 0.1
 };
   var chartDiv = document.getElementById('chart');
-  Plotly.purge(chartDiv);
-  Plotly.newPlot(chartDiv, [k, line, vol], layout, { displayModeBar: false, responsive: true });
+  // Mobile legend & margins
+try {
+  var _m = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
+  if (_m) {
+    if (!layout) { layout = {}; }
+    layout.legend = { orientation: 'h', x: 0, y: 1.12, yanchor: 'bottom', xanchor: 'left' };
+    layout.margin = { l: 36, r: 12, t: 56, b: 28 };
+    if (layout.yaxis && layout.yaxis2) {
+      layout.yaxis.domain = [0.28, 1];
+      layout.yaxis2.domain = [0, 0.22];
+    }
+  }
+} catch(e) {}
+
+// === Plotly mobile legend override v9 ===
+(function(){
+  try {
+    var isSmall = false;
+    try {
+      var rect = chartDiv && chartDiv.getBoundingClientRect ? chartDiv.getBoundingClientRect() : { width: 0 };
+      isSmall = (rect.width && rect.width <= 480);
+    } catch(e){}
+    var mq = false;
+    try { mq = window.matchMedia && window.matchMedia('(max-width: 640px)').matches; } catch(e){}
+    if (isSmall || mq) {
+      if (!layout) { layout = {}; }
+      layout.legend = {
+        orientation: 'h',
+        xref: 'paper', yref: 'paper',
+        x: 0, xanchor: 'left',
+        y: 1.02, yanchor: 'bottom',
+        bgcolor: 'rgba(0,0,0,0)'
+      };
+      var m = Object.assign({ l: 36, r: 12, t: 84, b: 28 }, layout.margin||{});
+      layout.margin = m;
+      if (layout.yaxis && layout.yaxis2) {
+        layout.yaxis.domain = [0.30, 1];
+        layout.yaxis2.domain = [0, 0.24];
+      }
+    }
+  } catch(e) {}
+})(); 
+// === End v9 ===
+
+
+// === Plotly desktop legend padding v10 ===
+(function(){
+  try {
+    var rect = chartDiv && chartDiv.getBoundingClientRect ? chartDiv.getBoundingClientRect() : { width: 0 };
+    var mqSmall = false;
+    try { mqSmall = window.matchMedia && window.matchMedia('(max-width: 640px)').matches; } catch(e){}
+    var isMobile = (mqSmall || (rect.width && rect.width <= 480));
+    if (!isMobile) {
+      if (!layout) { layout = {}; }
+      // 放到繪圖區外的右側，給更多右邊空間，避免「成交量(張)」被切
+      layout.legend = Object.assign({},
+        layout.legend || {},
+        { xref: 'paper', yref: 'paper', x: 1.02, xanchor: 'left', y: 1, yanchor: 'top' }
+      );
+      var m = Object.assign({ l: 40, r: 96, t: 10, b: 20 }, layout.margin||{});
+      layout.margin = m;
+    }
+  } catch(e) {}
+})();
+// === End v10 ===
+
+// === Plotly legend top for all viewports (v11) ===
+(function(){
+  try {
+    if (!layout) { layout = {}; }
+    // detect mobile width
+    var rect = chartDiv && chartDiv.getBoundingClientRect ? chartDiv.getBoundingClientRect() : { width: 0 };
+    var mqSmall = false;
+    try { mqSmall = window.matchMedia && window.matchMedia('(max-width: 640px)').matches; } catch(e){}
+    var isMobile = (mqSmall || (rect.width && rect.width <= 480));
+
+    // legend on top (outside), horizontal
+    layout.legend = Object.assign({}, layout.legend||{}, {
+      orientation: 'h',
+      xref: 'paper', yref: 'paper',
+      x: 0, xanchor: 'left',
+      y: 1.02, yanchor: 'bottom',
+      bgcolor: 'rgba(0,0,0,0)'
+    });
+
+    // margins: give some headroom for legend
+    if (isMobile) {
+      layout.margin = Object.assign({ l: 36, r: 12, t: 84, b: 28 }, layout.margin||{});
+      if (layout.yaxis && layout.yaxis2) {
+        layout.yaxis.domain = [0.30, 1];
+        layout.yaxis2.domain = [0, 0.24];
+      }
+    } else {
+      // desktop
+      layout.margin = Object.assign({ l: 40, r: 40, t: 64, b: 28 }, layout.margin||{});
+      // keep original domains unless explicitly set
+      if (layout.yaxis && layout.yaxis2) {
+        if (!layout.yaxis.domain)  layout.yaxis.domain  = [0.32, 1];
+        if (!layout.yaxis2.domain) layout.yaxis2.domain = [0, 0.25];
+      }
+    }
+  } catch(e){}
+})();
+// === End v11 ===
+
+// === Plotly legend top-right for all viewports (v11-final) ===
+(function(){
+  try {
+    if (!layout) { layout = {}; }
+    // Decide margins by viewport to ensure room for legend
+    var rect = chartDiv && chartDiv.getBoundingClientRect ? chartDiv.getBoundingClientRect() : { width: 0 };
+    var mqSmall=false; try{ mqSmall = window.matchMedia && window.matchMedia('(max-width: 640px)').matches; }catch(e){}
+    var isMobile = (mqSmall || (rect.width && rect.width <= 480));
+
+    // Put legend top-right (outside)
+    layout.legend = Object.assign({}, layout.legend||{}, {
+      orientation: 'h',
+      xref: 'paper', yref: 'paper',
+      x: 1, xanchor: 'right',
+      y: 1.02, yanchor: 'bottom',
+      bgcolor: 'rgba(0,0,0,0)'
+    });
+
+    // Top margin for legend + some breathing room; keep others reasonable
+    var m = layout.margin || {};
+    if (isMobile) {
+      layout.margin = Object.assign({ l: 36, r: 12, t: 72, b: 28 }, m);
+      if (layout.yaxis && layout.yaxis2) {
+        layout.yaxis.domain = [0.30, 1];
+        layout.yaxis2.domain = [0, 0.24];
+      }
+    } else {
+      layout.margin = Object.assign({ l: 40, r: 40, t: 72, b: 28 }, m);
+      // keep original domains for desktop unless already set
+    }
+  } catch(e) {}
+})();
+// === End v11-final ===
+
+Plotly.purge(chartDiv);
+Plotly.newPlot(chartDiv, [k, line, vol], layout, { displayModeBar: false, responsive: true });
 
   // Initialize shapes array for cross-panel vertical line
   Plotly.relayout(chartDiv, { shapes: [] });

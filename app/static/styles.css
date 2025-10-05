@@ -602,7 +602,7 @@ table { table-layout: auto; }
     overflow-wrap: anywhere !important;    /* 長字也能斷 */
     word-break: break-word !important;
     display: -webkit-box !important;
-    -webkit-line-clamp: 3;                 /* 最多兩行 */
+    -webkit-line-clamp: 2;                 /* 最多兩行 */
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -625,3 +625,18 @@ table { table-layout: auto; }
 }
 /* ===== End v8 ===== */
 
+
+
+/* Plotly legend clipping guard */
+.chart-card, #chart { overflow: visible; }
+.js-plotly-plot .legend { pointer-events: auto; }
+
+
+/* Ensure chart legend outside area is visible on desktop */
+#chart, .chart-card { overflow: visible; }
+
+/* Keep legend visible when above chart */
+#chart, .chart-card { overflow: visible; }
+
+/* v11: allow legend above chart to be visible */
+#chart, .chart-card { overflow: visible; }
