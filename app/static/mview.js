@@ -214,7 +214,15 @@ async function drawSeries(ticker){
     };
 
     const layout = {
-      font: { color: "#e6eef7" },
+      font: { color: "#e6eef7" },   // 圖表整體還是用淺色字
+      hoverlabel: {                 // ★ 新增這一段，專門控制 tooltip
+        bgcolor: "rgba(15,23,42,0.95)",  // tooltip 背景：深色
+        bordercolor: "#4b5563",          // 邊框顏色
+        font: {
+          color: "#f9fafb",              // tooltip 文字：亮色
+          size: 12
+        }
+      },
       paper_bgcolor: "rgba(0,0,0,0)",
       plot_bgcolor: "rgba(0,0,0,0)",
       hovermode: "x unified",
