@@ -18,3 +18,11 @@ ENV PYTHONPATH=/app
 
 # 重點：module 路徑改用 app.main:app，port 用 Railway 的 $PORT
 CMD sh -c "python -m uvicorn app.main:app --host 0.0.0.0 --port \${PORT:-8000}"
+
+
+物件標註輸出格式?
+
+business model?
+
+啞鈴有再開綠建築? 找 Stan?
+

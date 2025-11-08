@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>M-View｜盈利知-AI股市分析平台</title>
+  <link rel="stylesheet" href="/static/styles.css"/>
+  <link rel="stylesheet" href="/static/mview.css"/>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23141a22'/%3E%3Ctext x='16' y='21' text-anchor='middle' fill='%23ffffff' font-size='18' font-family='system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif'%3E盈%3C/text%3E%3C/svg%3E">
+</head>
+<body class="page-mview">
+<div class="container">
+  <div class="topbar">
+    <div class="logo">
+      <img src="/static/logo.svg" alt="盈利知" class="brand-logo"/>
+      <span class="brand-name">盈利知-AI股市分析平台</span>
+    </div>
+    <div><span id="userInfo" class="badge">未登入</span></div>
+  </div>
+
+  <!-- 登入畫面：沿用首頁風格 -->
+  <div class="page--login">
+    <div id="loginCard" class="card login-card">
+      <h2>歡迎使用 盈利知-AI股市分析平台</h2>
+      <div class="login-sub">請輸入您的序號以登入。</div>
+      <input id="serialInput" placeholder="例如：LV1-XXXX-1234"/>
+      <button class="btn" onclick="login()">登入</button>
+      <div class="login-note">登入後即可使用 M-View 多指標檢視功能（不分等級，可查看所有頁籤）。</div>
+    </div>
+  </div>
+
+  <!-- M-View 主畫面 -->
+  <div id="mviewCard" class="card" style="display:none;">
+    <div class="tabs mv-tabs" id="mv-tabs"></div>
+    <div class="row mv-main">
+      <div class="mv-side">
+        <div class="mv-search">
+          <input id="mv-filter" class="mv-filter" placeholder="搜尋股票代號/名稱…"/>
+        </div>
+        <ul id="mv-stock-list" class="mv-list"></ul>
+        <div id="mv-empty" class="empty-note" style="display:none;">這個分頁目前沒有股票，請試試其它頁籤。</div>
+      </div>
+      
+<div class="mv-content">
+        <div class="card chart-card mv-chart-card">
+          <div class="mv-chart-header">
+            <div class="mv-chart-title">
+              <span id="mv-stock-code" class="mv-stock-code"></span>
+              <span id="mv-stock-name" class="mv-stock-name"></span>
+            </div>
+            <div class="mv-chart-meta">
+              <span id="mv-stock-latest-price" class="mv-stock-price"></span>
+              <span id="mv-stock-latest-date" class="mv-stock-date"></span>
+            </div>
+          </div>
+          <div id="mv-stock-summary" class="mv-stock-summary"></div>
+          <div id="mv-chart" class="mv-chart"></div>
+        </div>
+        <div class="kpis mv-panels">
+          <div class="card mv-panel">
+            <div class="tabs mv-kpi-tabs">
+              <button type="button" class="tab active" data-kpi-tab="daily">日指標</button>
+              <button type="button" class="tab" data-kpi-tab="monthly">月指標</button>
+            </div>
+            <div id="mv-daily" class="mv-kv"></div>
+            <div id="mv-monthly" class="mv-kv" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="disclaimer">本平台所提供之資料僅供參考，不構成任何投資建議或保證。投資必有風險，請審慎評估，自行負責。</div>
+  </div>
+</div>
+
+<script>
+// ==== Login（沿用首頁邏輯，登入後改成啟動 M-View） ====
+async function login(){
+  const codeInput = document.getElementById('serialInput'); // 登入序號輸入框
+  const serial = (codeInput?.value || '').trim();
+
+  try{
+    const r = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ serial })
+    });
+    if(!r.ok){
+      alert('登入失敗，請確認序號。');
+      return;
+    }
+    const u = await r.json(); // 例如 { code: 'LV2-XXXX-1234', level: 2 }
+
+    // 顯示「已登入 Lv.X」
+    const userInfo = document.getElementById('userInfo');
+    if (userInfo) userInfo.textContent = `已登入  Lv.${u.level}`;
+
+    // 關掉登入畫面、打開 M-View 主畫面
+    const lc = document.getElementById('loginCard'); if (lc) lc.style.display = 'none';
+    const mv = document.getElementById('mviewCard'); if (mv) mv.style.display = 'block';
+    const lw = document.querySelector('.page--login'); if (lw) lw.style.display = 'none';
+
+    // 若之後其他功能想用等級，可暫存起來
+    window.__userLevel = u.level;
+
+    // 啟動 M-View
+    if (window.initMView) {
+      await window.initMView();
+    }
+
+  }catch(err){
+    console.error(err);
+    alert('登入過程發生錯誤。');
+  }
+}
+
+// 初次載入：一律顯示登入畫面，等使用者登入後才啟動 M-View
+document.addEventListener('DOMContentLoaded', function(){
+  const lw = document.querySelector('.page--login'); if (lw) lw.style.display = 'block';
+  const mv = document.getElementById('mviewCard'); if (mv) mv.style.display = 'none';
+});
+</script>
+<script src="/static/mview.js"></script>
+</body>
+</html>

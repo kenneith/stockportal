@@ -1,6 +1,7 @@
 
 # [patched 2025-09-30] normalize Chinese XLSX headers
 from services.field_mapper import normalize_row
+import services.mview_loader as mview_loader
 from fastapi import FastAPI, Request, Depends, UploadFile, File, HTTPException, Response
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -217,6 +218,12 @@ def page_index(request: Request):
 @app.get("/admin", response_class=HTMLResponse)
 def page_admin(request: Request):
     return templates.TemplateResponse("admin.html", {"request": request})
+
+
+@app.get("/mview", response_class=HTMLResponse)
+def page_mview(request: Request):
+    # 新的多頁籤指標檢視頁面
+    return templates.TemplateResponse("mview.html", {"request": request})
 
 # --- Auth ---
 @app.post("/api/auth/login")
@@ -489,6 +496,35 @@ def admin_upload_xlsx(file: UploadFile = File(...), a=Depends(require_admin)):
         f.write(content)
     return {"ok": True}
 
+
+
+
+# --- M-View APIs ---
+@app.get("/api/mview/tabs")
+def api_mview_tabs(u=Depends(require_user)):
+    """回傳 M0~M8 分頁與各分頁股票數量。"""
+    return mview_loader.get_tabs()
+
+
+@app.get("/api/mview/stocks")
+def api_mview_stocks(tab: str = "M0", u=Depends(require_user)):
+    if not tab.startswith("M") or not tab[1:].isdigit():
+        raise HTTPException(status_code=400, detail="tab must be M0..M8")
+    idx = int(tab[1:])
+    return mview_loader.list_stocks_by_tab(idx)
+
+
+@app.get("/api/mview/stock/{ticker}")
+def api_mview_stock_detail(ticker: str, u=Depends(require_user)):
+    return mview_loader.get_stock_detail(ticker)
+
+
+@app.post("/api/admin/mxlsx/upload")
+def api_admin_upload_mxlsx(file: UploadFile = File(...), a=Depends(require_admin)):
+    """後台上傳 M-View 專用的 Excel（DailyScreening）。"""
+    content = file.file.read()
+    info = mview_loader.reload_excel_from_bytes(content)
+    return {"ok": True, **info}
 
 @app.get("/api/admin/xlsx/preview")
 def admin_preview(a=Depends(require_admin)):
