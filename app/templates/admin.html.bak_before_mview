@@ -6,7 +6,7 @@
   <title>盈利知-AI股市分析平台</title>
   <link rel="stylesheet" href="/static/styles.css"/>
 </head>
-<body> 
+<body>
 <div class="container">
   <div class="topbar">
     <div class="logo"><img src="/static/logo.svg" alt="盈利知" class="brand-logo"/><span class="brand-name">Admin</span></div>
@@ -59,14 +59,6 @@
     </div>
     <div style="margin-top:8px;">
       <form id="uploadForm">
-        <input type="file" name="file"/>
-        <button class="btn" type="submit">上傳覆蓋</button>
-      </form>
-    </div>
-
-    <h3 style="margin-top:24px;">M-View 指標檔（DailyScreening）</h3>
-    <div style="margin-top:8px;">
-      <form id="mviewUploadForm">
         <input type="file" name="file"/>
         <button class="btn" type="submit">上傳覆蓋</button>
       </form>
@@ -143,18 +135,6 @@ document.getElementById('uploadForm').addEventListener('submit', async (e)=>{
   if(!r.ok){ alert('上傳失敗'); return; }
   alert('上傳完成');
 });
-
-const mviewForm = document.getElementById('mviewUploadForm');
-if (mviewForm){
-  mviewForm.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const r = await fetch('/api/admin/mxlsx/upload',{method:'POST', body:fd});
-    if(!r.ok){ alert('上傳失敗'); return; }
-    alert('M-View 指標檔已更新');
-  });
-}
-
 </script>
 
 <script>
