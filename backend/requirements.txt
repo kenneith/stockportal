@@ -1,0 +1,10 @@
+
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+python-multipart==0.0.9
+pdf2image==1.17.0
+pydantic==2.9.0
+pydantic-settings>=2.3.0
+openai>=1.51.0
+
+neo4j>=5.23.0

@@ -76,8 +76,28 @@ function renderList(){
     box.appendChild(el("div","mv-meta", r.industry || ""));
     li.appendChild(box);
 
-    const action = (r.action || "觀望").trim();
-    const tag = el("span","tag " + (action==="買進"?"tag-positive":"tag-neutral"), action);
+    // 從後端來的欄位：
+    // - action: 已正規化後的文字（買進 / 賣出 / 觀望）
+    // - raw_action: Excel 原始欄位（可能是 B / S / 其他代碼）
+    const rawAction = (r.raw_action || r.action || "").trim();
+    const normalized = (r.action || "").trim();
+
+    let actionLabel = normalized || "觀望";
+    let tagClass = "tag-neutral";
+
+    const upper = rawAction.toUpperCase();
+
+    // Excel 給 B / 買進 -> 買進(紅)
+    if (upper === "B" || normalized === "買進") {
+      actionLabel = "買進";
+      tagClass = "tag-positive";
+    // Excel 給 S / 賣出 -> 賣出(綠)
+    } else if (upper === "S" || normalized === "賣出") {
+      actionLabel = "賣出";
+      tagClass = "tag-negative";
+    }
+
+    const tag = el("span","tag " + tagClass, actionLabel);
     li.appendChild(tag);
 
     li.addEventListener("click", function(){
